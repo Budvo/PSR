@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 
-// ===== Типы =====
-
 export type AnswerOption = {
   id: string;
   text: string;
@@ -13,11 +11,6 @@ export type Question = {
   text: string;
   options: AnswerOption[];
 };
-
-// ===== ВСЕ ВОПРОСЫ =====
-// 👉 СЮДА ВСТАВЬТЕ ВАШ ПОЛНЫЙ МАССИВ ALL_QUESTIONS ИЗ РАНЕЕ РАБОТАЮЩЕЙ ВЕРСИИ
-// Я оставляю заглушку, чтобы файл компилировался. Вам нужно заменить массив ниже
-// на ваш массив из 45+ вопросов.
 
 const ALL_QUESTIONS: Question[] = [
   {
@@ -81,132 +74,132 @@ const ALL_QUESTIONS: Question[] = [
     id: 7,
     text: "Тушение пожаров – это",
     options: [
-      { id: "7a", text: "Силы и средства сосредоточенные на решающем направлении и выполняющие боевую задачу", isCorrect: false },
-      { id: "7b", text: "Действия пожарных подразделений направленные на полное прекращение огня, а так же на исключение возможности его повторного возникновения", isCorrect: true },
-      { id: "7c", text: "Действия, направленные на спасение людей, имущества и ликвидацию пожаров", isCorrect: false },
-      { id: "7d", text: "Действия, направленные на спасение людей, имущества, ликвидацию горения и устранения условий для его повторного возникновения", isCorrect: false },
+      { id: "a", text: "Силы и средства сосредоточенные на решающем направлении и выполняющие боевую задачу", isCorrect: false },
+      { id: "b", text: "Действия пожарных подразделений направленные на полное прекращение огня, а так же на исключение возможности его повторного возникновения", isCorrect: true },
+      { id: "c", text: "Действия, направленные на спасение людей, имущества и ликвидацию пожаров", isCorrect: false },
+      { id: "d", text: "Действия, направленные на спасение людей, имущества, ликвидацию горения и устранения условий для его повторного возникновения", isCorrect: false },
     ],
   },
    {
     id: 8,
     text: "Для защиты от хлора следует",
     options: [
-      { id: "8a", text: "Подняться повыше", isCorrect:  true },
-      { id: "8b", text: "Остаться на месте", isCorrect: false },
-      { id: "8c", text: "Спрятаться в подвал", isCorrect: false },
+      { id: "a", text: "Подняться повыше", isCorrect:  true },
+      { id: "b", text: "Остаться на месте", isCorrect: false },
+      { id: "c", text: "Спрятаться в подвал", isCorrect: false },
     ],
   },
    {
     id: 9,
     text: "Что не относиться к основным приемам «активного слушания»?",
     options: [
-      { id: "9a", text: "отражение чувств собеседника", isCorrect: false },
-      { id: "9b", text: "пара фраз", isCorrect: false },
-      { id: "9c", text: "резюме", isCorrect: false },
-      { id: "9d", text: "монолог", isCorrect: true },
+      { id: "a", text: "отражение чувств собеседника", isCorrect: false },
+      { id: "b", text: "пара фраз", isCorrect: false },
+      { id: "c", text: "резюме", isCorrect: false },
+      { id: "d", text: "монолог", isCorrect: true },
     ],
   },
    {
     id: 10,
     text: "На какое максимально время можно оставлять включенный двигатель бензопилы или бензореза при ее остановке",
     options: [
-      { id: "10a", text: "Не более 5 минут", isCorrect:  true },
-      { id: "10b", text: "Не более 10 минут", isCorrect: false },
-      { id: "10c", text: "Не более 15 минут", isCorrect: false },
+      { id: "a", text: "Не более 5 минут", isCorrect:  true },
+      { id: "b", text: "Не более 10 минут", isCorrect: false },
+      { id: "c", text: "Не более 15 минут", isCorrect: false },
     ],
   },
    {
     id: 11,
     text: "При переломах костей конечностей накладывается шина:",
     options: [
-      { id: "11a", text: "Ниже области перелома", isCorrect: false },
-      { id: "11b", text: "Выше и ниже области перелома, так чтобы шина захватывала один сустав выше перелома и все суставы ниже перелома", isCorrect: true },
-      { id: "11c", text: "Выше области перелома", isCorrect: false },
+      { id: "a", text: "Ниже области перелома", isCorrect: false },
+      { id: "b", text: "Выше и ниже области перелома, так чтобы шина захватывала один сустав выше перелома и все суставы ниже перелома", isCorrect: true },
+      { id: "c", text: "Выше области перелома", isCorrect: false },
     ],
   },
    {
     id: 12,
     text: "В каком случаи в ходе спасательных работ из автомобиля необходимо добавить точку стабилизации:",
     options: [
-      { id: "12a", text: "При установке домкрата для отодвигания приборной панели с целю создания свободного пространства – под задний конец домкрата (для предотвращения переламывания кузова)", isCorrect: false },
-      { id: "12b", text: "В случае если уже установленные точки стабилизации потеряли фиксацию", isCorrect: false },
-      { id: "12c", text: "В случае выражения сомнения в надежности стабилизации автомобиля хотя бы одним из участников спасательных работ", isCorrect: true },
+      { id: "a", text: "При установке домкрата для отодвигания приборной панели с целю создания свободного пространства – под задний конец домкрата (для предотвращения переламывания кузова)", isCorrect: false },
+      { id: "b", text: "В случае если уже установленные точки стабилизации потеряли фиксацию", isCorrect: false },
+      { id: "c", text: "В случае выражения сомнения в надежности стабилизации автомобиля хотя бы одним из участников спасательных работ", isCorrect: true },
     ],
   },
   {
     id: 13,
     text: "Сроки проведения разведки пожара",
     options: [
-      { id: "13a", text: "С момента сообщения о пожаре и до его ликвидации проводится разведка пожара", isCorrect: true },
-      { id: "13b", text: "С момента выезда подразделения и до полной ликвидации пожара", isCorrect: false },
-      { id: "13c", text: "С момента прибытия подразделения на пожар и до его ликвидации", isCorrect: false },
-      { id: "13d", text: "С момента сообщения о пожаре и до начала тушения пожара", isCorrect: false },
+      { id: "a", text: "С момента сообщения о пожаре и до его ликвидации проводится разведка пожара", isCorrect: true },
+      { id: "b", text: "С момента выезда подразделения и до полной ликвидации пожара", isCorrect: false },
+      { id: "c", text: "С момента прибытия подразделения на пожар и до его ликвидации", isCorrect: false },
+      { id: "d", text: "С момента сообщения о пожаре и до начала тушения пожара", isCorrect: false },
     ],
   },
   {
     id: 14,
     text: "Патроны РП используемые в изолирующем противогазе предназначены для:",
     options: [
-      { id: "14a", text: "Регенерации воздуха", isCorrect:  true },
-      { id: "14b", text: "Ингаляции воздуха", isCorrect: false },
-      { id: "14c", text: "Абсорбции воздуха", isCorrect: false },
+      { id: "a", text: "Регенерации воздуха", isCorrect:  true },
+      { id: "b", text: "Ингаляции воздуха", isCorrect: false },
+      { id: "c", text: "Абсорбции воздуха", isCorrect: false },
     ],
   },
   {
     id: 15,
     text: "Острые стрессовые реакции возникают",
     options: [
-      { id: "15a", text: "в течение нескольких месяцев после произошедшего события", isCorrect: false },
-      { id: "15b", text: "в момент события, длительностью до нескольких дней", isCorrect: true },
-      { id: "15c", text: "в течение нескольких лет после события", isCorrect: false },
+      { id: "a", text: "в течение нескольких месяцев после произошедшего события", isCorrect: false },
+      { id: "b", text: "в момент события, длительностью до нескольких дней", isCorrect: true },
+      { id: "c", text: "в течение нескольких лет после события", isCorrect: false },
     ],
   },
   {
     id: 16,
     text: "В каком случае разрешается переносить механизированный инструмент (бензопилу) в работающем состоянии",
     options: [
-      { id: "16a", text: "Только в случае проведения неотложных работ и только обращённым рабочими поверхностями по ходу движения от работника", isCorrect: false },
-      { id: "16b", text: "Не разрешается", isCorrect: true },
-      { id: "16c", text: "Разрешается при согласовании с руководителем работ и предупреждении остальных работающих", isCorrect: false },
+      { id: "a", text: "Только в случае проведения неотложных работ и только обращённым рабочими поверхностями по ходу движения от работника", isCorrect: false },
+      { id: "b", text: "Не разрешается", isCorrect: true },
+      { id: "c", text: "Разрешается при согласовании с руководителем работ и предупреждении остальных работающих", isCorrect: false },
     ],
   },
   {
     id: 17,
     text: "Перечислите виды ожогов",
     options: [
-      { id: "17a", text: "Химические, термические, радиационные, электрические", isCorrect: true },
-      { id: "17b", text: "Химические, электрические, щелочные, термические", isCorrect: false },
-      { id: "17c", text: "Электрические, щелочные, кислотные, радиационные, термические", isCorrect: false },
+      { id: "a", text: "Химические, термические, радиационные, электрические", isCorrect: true },
+      { id: "b", text: "Химические, электрические, щелочные, термические", isCorrect: false },
+      { id: "c", text: "Электрические, щелочные, кислотные, радиационные, термические", isCorrect: false },
     ],
   },
   {
     id: 18,
     text: "Имеется необходимость удалении крыши. Вклеенное лобовое стекло препятствует этому. Что необходимо предпринять?",
     options: [
-      { id: "18a", text: "Выдавить лобовое стекло изнутри", isCorrect: true },
-      { id: "18b", text: "Оторвать вручную лобовое стекло от крыши или кузова", isCorrect: false },
-      { id: "18c", text: "Разрезать лобовое стекло сабельной пилой или ручной пилой для стекла", isCorrect: false },
+      { id: "a", text: "Выдавить лобовое стекло изнутри", isCorrect: true },
+      { id: "b", text: "Оторвать вручную лобовое стекло от крыши или кузова", isCorrect: false },
+      { id: "c", text: "Разрезать лобовое стекло сабельной пилой или ручной пилой для стекла", isCorrect: false },
     ],
   },
   {
     id: 19,
     text: "Горение каких материалов относится к пожару класса D?",
     options: [
-      { id: "19a", text: "Пожары металлов", isCorrect: true },
-      { id: "19b", text: "Пожары твердых горючих веществ и материалов", isCorrect: false },
-      { id: "19c", text: "Пожары горючих жидкостей", isCorrect: false },
-      { id: "19d", text: "Пожары горючих веществ и материалов электроустановок, находящихся под напряжением", isCorrect: false },
-      { id: "19e", text: "Пожары ядерных материалов, радиоактивных отходов и радиоактивных веществ", isCorrect: false },
-      { id: "19f", text: "Пожары газов", isCorrect: false },
+      { id: "a", text: "Пожары металлов", isCorrect: true },
+      { id: "b", text: "Пожары твердых горючих веществ и материалов", isCorrect: false },
+      { id: "c", text: "Пожары горючих жидкостей", isCorrect: false },
+      { id: "d", text: "Пожары горючих веществ и материалов электроустановок, находящихся под напряжением", isCorrect: false },
+      { id: "e", text: "Пожары ядерных материалов, радиоактивных отходов и радиоактивных веществ", isCorrect: false },
+      { id: "f", text: "Пожары газов", isCorrect: false },
     ],
   },
   {
     id: 20,
     text: "Изолирующий противогаз предназначен",
     options: [
-      { id: "20a", text: "Для защиты органов дыхания от СО, аммиака, хлора, неизвестного ОВ", isCorrect:  true },
-      { id: "20b", text: "Для защиты органов дыхания только от АХОВ и ОВ", isCorrect: false },
-      { id: "20c", text: "Для защиты органов дыхания только от угарного газа", isCorrect: false },
+      { id: "a", text: "Для защиты органов дыхания от СО, аммиака, хлора, неизвестного ОВ", isCorrect:  true },
+      { id: "b", text: "Для защиты органов дыхания только от АХОВ и ОВ", isCorrect: false },
+      { id: "c", text: "Для защиты органов дыхания только от угарного газа", isCorrect: false },
     ],
   },
   {
@@ -763,7 +756,7 @@ const ALL_QUESTIONS: Question[] = [
       { id: "71c", text: "Наличие высокого напряжения тяговой бортовой сети (до 850 вольт) и потенциальная опасность самопроизвольного движения автомобиля", isCorrect: true },
     ],
   },
-   {
+  {
     id: 74,
     text: "Неспецифическая реакция организма на любое предъявляемое ему требование – это: ",
     options: [
@@ -799,7 +792,7 @@ const ALL_QUESTIONS: Question[] = [
       { id: "83c", text: "На лбу или щеке", isCorrect: true },
       { id: "83d", text: "На жгуте", isCorrect: false },
     ],
-  },
+   },
    {
     id:84 ,
     text: "Какие рабочие зоны выделяться на месте спасательных работ при ДТП:",
@@ -884,42 +877,9 @@ const ALL_QUESTIONS: Question[] = [
       { id: "92c", text: "Вытянуть рукоятку воздушной заслонки и запускать бензопилу энергичными рывками стартера", isCorrect: false },
     ],
   },
+  
+  // ... ВАШИ ВОПРОСЫ ИЗ ПРИМЕРА (1–120) ...
 ];
-
-// ===== ВОПРОСЫ ПО ТЕМАМ =====
-// Здесь вы ВРУЧНУЮ указываете ID вопросов (id из ALL_QUESTIONS), которые относятся к каждой теме.
-// Просто подставьте номера. Примеры закомментированы, их можно раскомментировать и поменять.
-
-const TOPIC_QUESTION_IDS: Record<string, number[]> = {
-  // "Первая помощь"
-  firstAid: [
-    11, 17, 24, 29, 33, 38, 40, 43, 47, 52, 56, 63, 70, 75, 77, 83, 91,
-  ],
-  // "Пожарная безопасность"
-  fireSafety: [
-    1, 5, 7, 13, 19, 21, 35, 45, 48, 58, 89,
-  ],
-  // "ДТП, АСР"
-  roadRescue: [
-    12, 18, 25, 30, 34, 39, 44, 53, 61, 67, 69, 71, 73, 76, 84, 88, 
-  ],
-  // "Работа с инструментом"
-  tools: [
-    4, 10, 16, 23, 28, 32, 42, 46, 51, 55, 60, 62, 66, 68, 72, 78, 80, 81, 82, 86, 87, 92
-  ],
-  // "Психология"
-  psychology: [
-    3, 9, 15, 27, 31, 37, 41, 50, 54, 59, 64, 74, 79, 90
-  ],
-  // "СИЗ и АХОВ"
-  ppeAndAhov: [
-    2, 6, 8, 14, 20, 22, 26, 36, 49, 57, 65, 85
-  ],
-} as const;
-
-type TopicKey = keyof typeof TOPIC_QUESTION_IDS;
-
-// ===== Вспомогательные функции =====
 
 function pickRandomQuestions(source: Question[], count: number): Question[] {
   const shuffled = [...source].sort(() => Math.random() - 0.5);
@@ -938,40 +898,18 @@ declare global {
   }
 }
 
-const BASE_MAX_ERRORS_FRACTION = 0.2; // 20% ошибок допустимо
-
-type Mode = "idle" | "credit" | "all" | "errors" | "topics" | "topicQuiz";
-
-type ActiveTopic =
-  | {
-      key: TopicKey;
-      title: string;
-    }
-  | null;
-
-function isAnswerCorrect(question: Question, optionId: string): boolean {
-  const option = question.options.find((o) => o.id === optionId);
-  return Boolean(option && option.isCorrect);
-}
-
-// ===== Основной компонент приложения =====
+type Mode = "idle" | "credit" | "all";
 
 export function App() {
-  const QUESTION_COUNT = 20; // стандартное количество вопросов для зачёта
+  const CREDIT_QUESTION_COUNT = 20;
+  const BASE_MAX_ERRORS_FRACTION = 0.2; // допускаем до 20% ошибок
 
   const [mode, setMode] = useState<Mode>("idle");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string | null>>({});
   const [isFinished, setIsFinished] = useState(false);
-  const [errorQuestions, setErrorQuestions] = useState<Question[]>([]);
 
-  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
-  const [isChecking, setIsChecking] = useState(false);
-
-  const [activeTopic, setActiveTopic] = useState<ActiveTopic>(null);
-
-  // Инициализация Telegram WebApp
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
     if (tg) {
@@ -984,6 +922,8 @@ export function App() {
     }
   }, []);
 
+  const currentQuestion = questions[currentIndex];
+
   const correctCount = useMemo(
     () =>
       questions.reduce((sum, q) => {
@@ -995,237 +935,110 @@ export function App() {
     [answers, questions]
   );
 
-  const currentQuestion = questions[currentIndex];
-
-  // ===== Запуск разных режимов =====
-
-  function resetState() {
-    setCurrentIndex(0);
-    setAnswers({});
-    setIsFinished(false);
-    setSelectedOptionId(null);
-    setIsChecking(false);
-  }
-
-  function startCreditTest() {
-    setMode("credit");
-    setActiveTopic(null);
-    const qs = pickRandomQuestions(
-      ALL_QUESTIONS,
-      Math.min(QUESTION_COUNT, ALL_QUESTIONS.length)
-    );
-    setQuestions(qs);
-    resetState();
-  }
-
-  function startAllQuestionsTest() {
-    setMode("all");
-    setActiveTopic(null);
-    setQuestions(ALL_QUESTIONS);
-    resetState();
-  }
-
-  function startErrorsTest() {
-    if (errorQuestions.length === 0) {
-      setMode("errors");
-      setQuestions([]);
-      resetState();
-      return;
-    }
-    setMode("errors");
-    setActiveTopic(null);
-    setQuestions(errorQuestions);
-    resetState();
-  }
-
-  function openTopicsMenu() {
-    setMode("topics");
-    setActiveTopic(null);
-    setQuestions([]);
-    resetState();
-  }
-
-  function startTopicQuiz(topicKey: TopicKey, title: string) {
-    const ids = TOPIC_QUESTION_IDS[topicKey];
-    const topicQuestions = ALL_QUESTIONS.filter((q) => ids.includes(q.id));
-
-    setMode("topicQuiz");
-    setActiveTopic({ key: topicKey, title });
-    setQuestions(topicQuestions);
-    resetState();
-  }
-
-  // ===== Обработка ответа =====
-
-  const handleAnswer = (optionId: string) => {
-    if (!currentQuestion || isChecking) return;
-
-    const questionId = currentQuestion.id;
-    const nowIsCorrect = isAnswerCorrect(currentQuestion, optionId);
-
-    setSelectedOptionId(optionId);
-    setIsChecking(true);
-    setAnswers((prev) => ({ ...prev, [questionId]: optionId }));
-
-    // Обновление списка ошибок
-    if (mode !== "errors") {
-      setErrorQuestions((prev) => {
-        const already = prev.some((q) => q.id === questionId);
-        if (nowIsCorrect) return prev;
-        return already ? prev : [...prev, currentQuestion];
-      });
-    } else {
-      setErrorQuestions((prev) => {
-        if (nowIsCorrect) {
-          return prev.filter((q) => q.id !== questionId);
-        }
-        return prev;
-      });
-    }
-
-        const isLast = currentIndex === questions.length - 1;
-
-    setTimeout(() => {
-      setIsChecking(false);
-      setSelectedOptionId(null);
-
-      if (isLast) {
-        setIsFinished(true);
-
-        // Безопасная отправка результата в Telegram WebApp
-        try {
-          const tg = window.Telegram?.WebApp;
-          if (tg && typeof tg.sendData === "function") {
-            // Считаем финальное количество правильных ответов,
-            // учитывая текущий (последний) ответ.
-            const finalCorrect = questions.reduce((sum, q) => {
-              const chosen =
-                q.id === questionId ? optionId : answers[q.id] ?? null;
-              const correctOption = q.options.find((o) => o.isCorrect);
-              if (!correctOption) return sum;
-              return sum + (chosen === correctOption.id ? 1 : 0);
-            }, 0);
-
-            const total = questions.length;
-            const maxErrorsAllowed = Math.floor(
-              total * BASE_MAX_ERRORS_FRACTION
-            );
-            const errors = Math.max(total - finalCorrect, 0);
-            const passed = errors <= maxErrorsAllowed;
-
-            const payload = {
-              type: "quizResult" as const,
-              mode,
-              correct: finalCorrect,
-              total,
-              errors,
-              maxErrorsAllowed,
-              passed,
-              // фиксируем все ответы, включая последний
-              answers: { ...answers, [questionId]: optionId },
-            };
-
-            // ВАЖНО: только sendData, БЕЗ tg.close() и без доп. setState здесь
-            tg.sendData(JSON.stringify(payload));
-          }
-        } catch (error) {
-          console.log("Telegram sendData error:", error);
-        }
-      } else {
-        // Переходим к следующему вопросу только если это не последний
-        setCurrentIndex((prev) => prev + 1);
-      }
-    }, 500); // 0.5 секунды
-  };
-
-  const handleBackToMenu = () => {
-    setMode("idle");
-    setActiveTopic(null);
-    setQuestions([]);
-    resetState();
-  };
-
-  const totalQuestions = questions.length || 1;
+  const totalQuestions = questions.length;
   const maxErrorsAllowed = Math.floor(totalQuestions * BASE_MAX_ERRORS_FRACTION);
   const errorsCount = Math.max(totalQuestions - correctCount, 0);
   const isPassed = errorsCount <= maxErrorsAllowed;
 
-  // ===== Рендер: режим "ошибок" без вопросов =====
+  const startTest = (newMode: Mode) => {
+    let qs: Question[];
+    if (newMode === "credit") {
+      qs = pickRandomQuestions(ALL_QUESTIONS, Math.min(CREDIT_QUESTION_COUNT, ALL_QUESTIONS.length));
+    } else if (newMode === "all") {
+      qs = [...ALL_QUESTIONS];
+    } else {
+      qs = [];
+    }
 
-  if (mode === "errors" && questions.length === 0 && !isFinished) {
-    return (
-      <div className="flex min-h-screen bg-slate-950 text-slate-50">
-        <div className="mx-auto flex w-full max-w-xl flex-col px-4 pb-6 pt-8">
-          <header className="mb-4 flex items-center justify-between">
-            <h1 className="text-lg font-semibold">Ошибки</h1>
-            <button
-              onClick={handleBackToMenu}
-              className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-200 shadow-sm hover:bg-slate-700"
-            >
-              В меню
-            </button>
-          </header>
+    setMode(newMode);
+    setQuestions(qs);
+    setCurrentIndex(0);
+    setAnswers({});
+    setIsFinished(false);
+  };
 
-          <main className="flex flex-1 flex-col items-center justify-center text-center">
-            <p className="mb-4 text-sm text-slate-300">
-              У вас нет сохранённых ошибок.
-            </p>
-            <button
-              onClick={handleBackToMenu}
-              className="rounded-full bg-emerald-500 px-6 py-3 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-500/30 hover:bg-emerald-400"
-            >
-              В главное меню
-            </button>
-          </main>
-        </div>
-      </div>
-    );
-  }
+  const handleAnswer = (optionId: string) => {
+    if (!currentQuestion) return;
 
-  // ===== Главный экран (меню) =====
+    const questionId = currentQuestion.id;
+    setAnswers((prev) => ({ ...prev, [questionId]: optionId }));
+
+    const isLast = currentIndex === questions.length - 1;
+
+    if (isLast) {
+      setIsFinished(true);
+
+      try {
+        const tg = window.Telegram?.WebApp;
+        if (tg && typeof tg.sendData === "function") {
+          const isCorrectNow = isAnswerCorrect(currentQuestion, optionId);
+          const finalCorrect = correctCount + (isCorrectNow ? 1 : 0);
+          const finalTotal = questions.length;
+          const finalMaxErrorsAllowed = Math.floor(finalTotal * BASE_MAX_ERRORS_FRACTION);
+          const finalErrors = Math.max(finalTotal - finalCorrect, 0);
+          const finalPassed = finalErrors <= finalMaxErrorsAllowed;
+
+          const payload = {
+            type: "quizResult",
+            mode,
+            correct: finalCorrect,
+            total: finalTotal,
+            errors: finalErrors,
+            maxErrorsAllowed: finalMaxErrorsAllowed,
+            passed: finalPassed,
+            answers: {
+              ...answers,
+              [questionId]: optionId,
+            },
+          };
+
+          // На некоторых Android-клиентах Telegram WebApp закрывается сразу после sendData.
+          // Поэтому отправляем только данные, не вызываем close() и не меняем состояние после этого вызова.
+          tg.sendData(JSON.stringify(payload));
+        }
+      } catch (error) {
+        console.log("Telegram sendData error:", error);
+      }
+    } else {
+      setCurrentIndex((prev) => prev + 1);
+    }
+  };
+
+  const handleRestartSameMode = () => {
+    if (mode === "credit") {
+      startTest("credit");
+    } else if (mode === "all") {
+      startTest("all");
+    } else {
+      setMode("idle");
+      setQuestions([]);
+      setCurrentIndex(0);
+      setAnswers({});
+      setIsFinished(false);
+    }
+  };
 
   if (mode === "idle") {
     return (
       <div className="flex min-h-screen bg-slate-950 text-slate-50">
         <div className="mx-auto flex w-full max-w-xl flex-col px-4 pb-6 pt-8">
           <header className="mb-6 text-center">
-            <h1 className="text-xl font-semibold">Тест для Telegram</h1>
+            <h1 className="text-lg font-semibold">Тест для Telegram</h1>
             <p className="mt-1 text-xs text-slate-400">
-              Выберите режим: зачёт, все вопросы, ошибки или вопросы по темам.
+              Выберите режим прохождения: зачёт (20 случайных вопросов) или вся база вопросов.
             </p>
           </header>
 
-          <main className="flex flex-1 flex-col items-stretch gap-2">
+          <main className="flex flex-1 flex-col items-stretch justify-center gap-3">
             <button
-              onClick={startCreditTest}
-              className="w-full rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-500/30 hover:bg-emerald-400"
+              onClick={() => startTest("credit")}
+              className="rounded-2xl bg-emerald-500 px-4 py-4 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-500/30 active:scale-[0.98] hover:bg-emerald-400"
             >
-              Зачёт (20 случайных вопросов)
+              Зачет (20 случайных вопросов)
             </button>
-
             <button
-              onClick={startErrorsTest}
-              className="w-full rounded-2xl bg-rose-500/90 px-4 py-3 text-sm font-semibold text-rose-50 shadow-lg shadow-rose-500/40 hover:bg-rose-400"
-            >
-              Ошибки
-              {errorQuestions.length > 0 && (
-                <span className="ml-1 text-xs opacity-80">
-                  ({errorQuestions.length})
-                </span>
-              )}
-            </button>
-
-            {/* НОВАЯ КНОПКА "ВОПРОСЫ ПО ТЕМАМ" */}
-            <button
-              onClick={openTopicsMenu}
-              className="w-full rounded-2xl bg-indigo-500 px-4 py-3 text-sm font-semibold text-indigo-50 shadow-lg shadow-indigo-500/40 hover:bg-indigo-400"
-            >
-              Вопросы по темам
-            </button>
-
-            <button
-              onClick={startAllQuestionsTest}
-              className="w-full rounded-2xl bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-50 shadow-lg shadow-slate-900/40 hover:bg-slate-700"
+              onClick={() => startTest("all")}
+              className="rounded-2xl bg-slate-800 px-4 py-4 text-sm font-semibold text-slate-50 shadow-lg shadow-slate-950/40 active:scale-[0.98] hover:bg-slate-700"
             >
               Все вопросы (вся база)
             </button>
@@ -1239,231 +1052,111 @@ export function App() {
     );
   }
 
-  // ===== Экран выбора темы =====
-
-  if (mode === "topics") {
-    return (
-      <div className="flex min-h-screen bg-slate-950 text-slate-50">
-        <div className="mx-auto flex w-full max-w-xl flex-col px-4 pb-6 pt-8">
-          <header className="mb-4 flex items-center justify-between">
-            <h1 className="text-lg font-semibold">Вопросы по темам</h1>
-            <button
-              onClick={handleBackToMenu}
-              className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-200 shadow-sm hover:bg-slate-700"
-            >
-              В меню
-            </button>
-          </header>
-
-          <main className="flex flex-1 flex-col gap-2">
-            {/* Кнопки тем. IDs настраиваются ТОЛЬКО в TOPIC_QUESTION_IDS выше */}
-            <button
-              onClick={() => startTopicQuiz("firstAid", "Первая помощь")}
-              className="w-full rounded-2xl bg-slate-800 px-4 py-3 text-left text-sm font-medium hover:bg-slate-700"
-            >
-              Первая помощь
-            </button>
-            <button
-              onClick={() => startTopicQuiz("fireSafety", "Пожарная безопасность")}
-              className="w-full rounded-2xl bg-slate-800 px-4 py-3 text-left text-sm font-medium hover:bg-slate-700"
-            >
-              Пожарная безопасность
-            </button>
-            <button
-              onClick={() => startTopicQuiz("roadRescue", "ДТП, АСР")}
-              className="w-full rounded-2xl bg-slate-800 px-4 py-3 text-left text-sm font-medium hover:bg-slate-700"
-            >
-              ДТП, АСР
-            </button>
-            <button
-              onClick={() => startTopicQuiz("tools", "Работа с инструментом")}
-              className="w-full rounded-2xl bg-slate-800 px-4 py-3 text-left text-sm font-medium hover:bg-slate-700"
-            >
-              Работа с инструментом
-            </button>
-            <button
-              onClick={() => startTopicQuiz("psychology", "Психология")}
-              className="w-full rounded-2xl bg-slate-800 px-4 py-3 text-left text-sm font-medium hover:bg-slate-700"
-            >
-              Психология
-            </button>
-            <button
-              onClick={() => startTopicQuiz("ppeAndAhov", "СИЗ и АХОВ")}
-              className="w-full rounded-2xl bg-slate-800 px-4 py-3 text-left text-sm font-medium hover:bg-slate-700"
-            >
-              СИЗ и АХОВ
-            </button>
-          </main>
-        </div>
-      </div>
-    );
-  }
-
-  // ===== Состояние: нет текущего вопроса и тест не закончен =====
-
   if (!currentQuestion && !isFinished) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-50">
         <div className="text-center text-sm text-slate-300">
-          Недостаточно вопросов в базе или для выбранной темы. Проверьте IDs.
+          Недостаточно вопросов в базе. Добавьте больше вопросов в ALL_QUESTIONS.
         </div>
       </div>
     );
   }
-
-  // ===== Экран прохождения теста (для всех режимов, кроме idle/topics) =====
-
-  if (!isFinished && currentQuestion) {
-    return (
-      <div className="flex min-h-screen bg-slate-950 text-slate-50">
-        <div className="mx-auto flex w-full max-w-xl flex-col px-4 pb-6 pt-8">
-          <header className="mb-4 flex items-center justify-between">
-            <div>
-              <h1 className="text-lg font-semibold">
-                {mode === "credit" && "Зачёт"}
-                {mode === "all" && "Все вопросы"}
-                {mode === "errors" && "Ошибки"}
-                {mode === "topicQuiz" && (activeTopic?.title || "Тема")}
-              </h1>
-              <p className="text-xs text-slate-400">
-                Вопрос {currentIndex + 1} / {questions.length}
-              </p>
-            </div>
-            <button
-              onClick={handleBackToMenu}
-              className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-200 shadow-sm hover:bg-slate-700"
-            >
-              В меню
-            </button>
-          </header>
-
-          <main className="flex flex-1 flex-col">
-            <div className="mb-3 flex items-center justify-between text-xs text-slate-400">
-              <span>Правильных: {correctCount}</span>
-              <span>Ошибок: {errorsCount} / допущено {maxErrorsAllowed}</span>
-            </div>
-
-            <div className="mb-4 rounded-2xl bg-slate-900/60 p-4 shadow-lg shadow-slate-950/40">
-              <p className="whitespace-pre-line text-sm leading-relaxed">
-                {currentQuestion.text}
-              </p>
-            </div>
-
-            <div className="mt-auto flex flex-col gap-2">
-              {currentQuestion.options.map((option) => {
-                let bg = "bg-slate-800 hover:bg-slate-700";
-                let textColor = "text-slate-50";
-                let border = "border border-transparent";
-
-                if (isChecking) {
-                  const isCorrectOpt = option.isCorrect;
-                  const isSelected = option.id === selectedOptionId;
-
-                  if (isCorrectOpt) {
-                    bg = "bg-emerald-600";
-                    textColor = "text-emerald-50";
-                    border = "border border-emerald-400/60";
-                  } else if (isSelected && !isCorrectOpt) {
-                    bg = "bg-rose-600";
-                    textColor = "text-rose-50";
-                    border = "border border-rose-400/60";
-                  } else {
-                    bg = "bg-slate-800/70";
-                    textColor = "text-slate-400";
-                  }
-                }
-
-                return (
-                  <button
-                    key={option.id}
-                    onClick={() => handleAnswer(option.id)}
-                    disabled={isChecking}
-                    className={`w-full rounded-2xl px-4 py-3 text-left text-sm font-medium transition active:scale-[0.98] ${bg} ${textColor} ${border}`}
-                  >
-                    {option.text}
-                  </button>
-                );
-              })}
-            </div>
-          </main>
-
-          <footer className="mt-4 text-center text-[10px] text-slate-500">
-            Интерфейс адаптирован под Telegram WebApp.
-          </footer>
-        </div>
-      </div>
-    );
-  }
-
-  // ===== Экран результатов =====
 
   return (
     <div className="flex min-h-screen bg-slate-950 text-slate-50">
       <div className="mx-auto flex w-full max-w-xl flex-col px-4 pb-6 pt-8">
         <header className="mb-4 flex items-center justify-between">
-          <h1 className="text-lg font-semibold">
-            {mode === "credit" && "Результат зачёта"}
-            {mode === "all" && "Результат теста"}
-            {mode === "errors" && "Повторение ошибок завершено"}
-            {mode === "topicQuiz" && (activeTopic?.title || "Результат по теме")}
-          </h1>
+          <div>
+            <h1 className="text-lg font-semibold">Тест для Telegram</h1>
+            <p className="text-xs text-slate-400">
+              {mode === "credit" ? "20 случайных вопросов (зачет)" : "Все вопросы из базы"}
+            </p>
+          </div>
           <button
-            onClick={handleBackToMenu}
+            onClick={() => {
+              setMode("idle");
+              setQuestions([]);
+              setCurrentIndex(0);
+              setAnswers({});
+              setIsFinished(false);
+            }}
             className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-200 shadow-sm hover:bg-slate-700"
           >
             В меню
           </button>
         </header>
 
-        <main className="flex flex-1 flex-col items-center justify-center text-center">
-          <div className="mb-6 rounded-3xl bg-slate-900/70 px-6 py-8 shadow-lg shadow-slate-950/40">
-            <p className="mb-2 text-sm text-slate-300">
-              Правильных ответов: {correctCount} из {questions.length}
-            </p>
+        {!isFinished ? (
+          <main className="flex flex-1 flex-col">
+            <div className="mb-3 flex items-center justify-between text-xs text-slate-400">
+              <span>
+                Вопрос {currentIndex + 1} / {questions.length}
+              </span>
+              <span>Правильных: {correctCount}</span>
+            </div>
 
-            {mode === "errors" ? (
-              <p className="text-base font-semibold text-emerald-400">
-                У вас нет ошибок.
+            {currentQuestion && (
+              <>
+                <div className="mb-4 rounded-2xl bg-slate-900/60 p-4 shadow-lg shadow-slate-950/40">
+                  <p className="whitespace-pre-line text-sm leading-relaxed">{currentQuestion.text}</p>
+                </div>
+
+                <div className="mt-auto flex flex-col gap-2">
+                  {currentQuestion.options.map((option) => (
+                    <button
+                      key={option.id}
+                      onClick={() => handleAnswer(option.id)}
+                      className="w-full rounded-2xl bg-slate-800 px-4 py-3 text-left text-sm font-medium transition hover:bg-slate-700 active:scale-[0.98]"
+                    >
+                      {option.text}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </main>
+        ) : (
+          <main className="flex flex-1 flex-col items-center justify-center text-center">
+            <div className="mb-6 rounded-3xl bg-slate-900/70 px-6 py-8 shadow-lg shadow-slate-950/40">
+              <h2 className="mb-2 text-xl font-semibold">Тест завершён</h2>
+              <p className="mb-4 text-sm text-slate-300">
+                Правильных ответов: {correctCount} из {questions.length}
               </p>
-            ) : (
               <p
                 className={
-                  "text-lg font-bold " +
-                  (isPassed ? "text-emerald-400" : "text-rose-400")
+                  "text-lg font-bold " + (isPassed ? "text-emerald-400" : "text-rose-400")
                 }
               >
                 {isPassed ? "Зачёт" : "Незачёт"}
               </p>
-            )}
-          </div>
+            </div>
 
-          {mode !== "errors" && (
-            <button
-              onClick={() => {
-                if (mode === "credit") startCreditTest();
-                else if (mode === "all") startAllQuestionsTest();
-                else if (mode === "topicQuiz" && activeTopic) {
-                  startTopicQuiz(activeTopic.key, activeTopic.title);
-                }
-              }}
-              className="mb-3 rounded-full bg-emerald-500 px-6 py-3 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-500/30 hover:bg-emerald-400"
-            >
-              Пройти ещё раз
-            </button>
-          )}
-
-          <button
-            onClick={handleBackToMenu}
-            className="rounded-full bg-slate-800 px-6 py-3 text-sm font-semibold text-slate-50 shadow-lg shadow-slate-900/40 hover:bg-slate-700"
-          >
-            В главное меню
-          </button>
-        </main>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={handleRestartSameMode}
+                className="rounded-full bg-emerald-500 px-6 py-3 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-500/30 hover:bg-emerald-400"
+              >
+                Пройти ещё раз в этом режиме
+              </button>
+              <button
+                onClick={() => setMode("idle")}
+                className="rounded-full bg-slate-800 px-6 py-3 text-sm font-semibold text-slate-50 shadow-lg shadow-slate-950/40 hover:bg-slate-700"
+              >
+                В главное меню
+              </button>
+            </div>
+          </main>
+        )}
 
         <footer className="mt-4 text-center text-[10px] text-slate-500">
-          Интерфейс адаптирован под Telegram WebApp.
+          Интерфейс адаптирован под Telegram WebApp: вопрос сверху, варианты ответов кнопками внизу.
         </footer>
       </div>
     </div>
   );
+}
+
+function isAnswerCorrect(question: Question, optionId: string): boolean {
+  const option = question.options.find((o) => o.id === optionId);
+  return Boolean(option && option.isCorrect);
 }
