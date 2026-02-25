@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
+// ===== Типы =====
+
 export type AnswerOption = {
   id: string;
   text: string;
@@ -12,6 +14,8 @@ export type Question = {
   options: AnswerOption[];
 };
 
+// ===== ВСЕ ВОПРОСЫ =====
+// СЮДА вставь свой полный массив ALL_QUESTIONS (тот, который у тебя уже есть и работает)
 const ALL_QUESTIONS: Question[] = [
   {
     id: 1,
@@ -877,32 +881,64 @@ const ALL_QUESTIONS: Question[] = [
       { id: "92c", text: "Вытянуть рукоятку воздушной заслонки и запускать бензопилу энергичными рывками стартера", isCorrect: false },
     ],
   },
-  
-  // ... ВАШИ ВОПРОСЫ ИЗ ПРИМЕРА (1–120) ...
 ];
+
+const TOPIC_QUESTION_IDS = {
+  // "Первая помощь"
+  firstAid: [
+    11, 17, 24, 29, 33, 38, 40, 43, 47, 52, 56, 63, 70, 75, 77, 83, 91,
+  ],
+  // "Пожарная безопасность"
+  fireSafety: [
+    1, 5, 7, 13, 19, 21, 35, 45, 48, 58, 89,
+  ],
+  // "ДТП, АСР"
+  roadRescue: [
+    12, 18, 25, 30, 34, 39, 44, 53, 61, 67, 69, 71, 73, 76, 84, 88, 
+  ],
+  // "Работа с инструментом"
+  tools: [
+     4, 10, 16, 23, 28, 32, 42, 46, 51, 55, 60, 62, 66, 68, 72, 78, 80, 81, 82, 86, 87, 92
+  ],
+  // "Психология"
+  psychology: [
+   3, 9, 15, 27, 31, 37, 41, 50, 54, 59, 64, 74, 79, 90
+  ],
+  // "СИЗ и АХОВ"
+  ppeAndAhov: [
+    2, 6, 8, 14, 20, 22, 26, 36, 49, 57, 65, 85
+  ],
+} as const;
+
+type TopicKey = keyof typeof TOPIC_QUESTION_IDS;
+
+// ===== Вспомогательное =====
 
 function pickRandomQuestions(source: Question[], count: number): Question[] {
   const shuffled = [...source].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, count);
 }
 
-declare global {
-  interface Window {
-    Telegram?: {
-      WebApp?: {
-        ready: () => void;
-        expand: () => void;
-        sendData: (data: string) => void;
-      };
-    };
-  }
+function isAnswerCorrect(question: Question, optionId: string): boolean {
+  const option = question.options.find((o) => o.id === optionId);
+  return Boolean(option && option.isCorrect);
 }
 
-type Mode = "idle" | "credit" | "all";
+const BASE_MAX_ERRORS_FRACTION = 0.2; // допускаем до 20% ошибок
+
+type Mode = "idle" | "credit" | "all" | "errors" | "topics" | "topicQuiz";
+
+type ActiveTopic =
+  | {
+      key: TopicKey;
+      title: string;
+    }
+  | null;
+
+// ===== Основной компонент =====
 
 export function App() {
   const CREDIT_QUESTION_COUNT = 20;
-  const BASE_MAX_ERRORS_FRACTION = 0.2; // допускаем до 20% ошибок
 
   const [mode, setMode] = useState<Mode>("idle");
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -910,16 +946,16 @@ export function App() {
   const [answers, setAnswers] = useState<Record<number, string | null>>({});
   const [isFinished, setIsFinished] = useState(false);
 
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+  const [isChecking, setIsChecking] = useState(false);
+
+  const [errorQuestions, setErrorQuestions] = useState<Question[]>([]);
+  const [activeTopic, setActiveTopic] = useState<ActiveTopic>(null);
+
+  // Можно оставить пустым useEffect или удалить совсем.
+  // Оставляю пустой, чтобы структура была как в исходной версии.
   useEffect(() => {
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      try {
-        tg.ready();
-        tg.expand();
-      } catch {
-        // ignore
-      }
-    }
+    // без Telegram WebApp, без бота
   }, []);
 
   const currentQuestion = questions[currentIndex];
@@ -935,73 +971,76 @@ export function App() {
     [answers, questions]
   );
 
-  const totalQuestions = questions.length;
-  const maxErrorsAllowed = Math.floor(totalQuestions * BASE_MAX_ERRORS_FRACTION);
+  const totalQuestions = questions.length || 1;
+  const maxErrorsAllowed = Math.floor(
+    totalQuestions * BASE_MAX_ERRORS_FRACTION
+  );
   const errorsCount = Math.max(totalQuestions - correctCount, 0);
   const isPassed = errorsCount <= maxErrorsAllowed;
 
+  // ===== Запуск режимов =====
+
+  const resetState = () => {
+    setCurrentIndex(0);
+    setAnswers({});
+    setIsFinished(false);
+    setSelectedOptionId(null);
+    setIsChecking(false);
+  };
+
   const startTest = (newMode: Mode) => {
-    let qs: Question[];
+    let qs: Question[] = [];
+
     if (newMode === "credit") {
-      qs = pickRandomQuestions(ALL_QUESTIONS, Math.min(CREDIT_QUESTION_COUNT, ALL_QUESTIONS.length));
+      qs = pickRandomQuestions(
+        ALL_QUESTIONS,
+        Math.min(CREDIT_QUESTION_COUNT, ALL_QUESTIONS.length)
+      );
     } else if (newMode === "all") {
       qs = [...ALL_QUESTIONS];
-    } else {
-      qs = [];
+    } else if (newMode === "errors") {
+      if (errorQuestions.length === 0) {
+        // если нет ошибок — просто переходим в режим ошибок с пустым списком
+        setMode("errors");
+        setQuestions([]);
+        resetState();
+        return;
+      }
+      qs = [...errorQuestions];
     }
 
     setMode(newMode);
     setQuestions(qs);
-    setCurrentIndex(0);
-    setAnswers({});
-    setIsFinished(false);
+    setActiveTopic(null);
+    resetState();
   };
 
-  const handleAnswer = (optionId: string) => {
-    if (!currentQuestion) return;
+  const startErrorsTest = () => {
+    startTest("errors");
+  };
 
-    const questionId = currentQuestion.id;
-    setAnswers((prev) => ({ ...prev, [questionId]: optionId }));
+  const startTopicsMenu = () => {
+    setMode("topics");
+    setQuestions([]);
+    setActiveTopic(null);
+    resetState();
+  };
 
-    const isLast = currentIndex === questions.length - 1;
+  const startTopicQuiz = (topicKey: TopicKey, title: string) => {
+    const ids = TOPIC_QUESTION_IDS[topicKey];
+    const topicQuestions = ALL_QUESTIONS.filter((q) => ids.includes(q.id));
 
-    if (isLast) {
-      setIsFinished(true);
+    setMode("topicQuiz");
+    setQuestions(topicQuestions);
+    setActiveTopic({ key: topicKey, title });
+    resetState();
+  };
 
-      try {
-        const tg = window.Telegram?.WebApp;
-        if (tg && typeof tg.sendData === "function") {
-          const isCorrectNow = isAnswerCorrect(currentQuestion, optionId);
-          const finalCorrect = correctCount + (isCorrectNow ? 1 : 0);
-          const finalTotal = questions.length;
-          const finalMaxErrorsAllowed = Math.floor(finalTotal * BASE_MAX_ERRORS_FRACTION);
-          const finalErrors = Math.max(finalTotal - finalCorrect, 0);
-          const finalPassed = finalErrors <= finalMaxErrorsAllowed;
-
-          const payload = {
-            type: "quizResult",
-            mode,
-            correct: finalCorrect,
-            total: finalTotal,
-            errors: finalErrors,
-            maxErrorsAllowed: finalMaxErrorsAllowed,
-            passed: finalPassed,
-            answers: {
-              ...answers,
-              [questionId]: optionId,
-            },
-          };
-
-          // На некоторых Android-клиентах Telegram WebApp закрывается сразу после sendData.
-          // Поэтому отправляем только данные, не вызываем close() и не меняем состояние после этого вызова.
-          tg.sendData(JSON.stringify(payload));
-        }
-      } catch (error) {
-        console.log("Telegram sendData error:", error);
-      }
-    } else {
-      setCurrentIndex((prev) => prev + 1);
-    }
+  const handleBackToMenu = () => {
+    setMode("idle");
+    setQuestions([]);
+    setActiveTopic(null);
+    resetState();
   };
 
   const handleRestartSameMode = () => {
@@ -1009,15 +1048,98 @@ export function App() {
       startTest("credit");
     } else if (mode === "all") {
       startTest("all");
+    } else if (mode === "errors") {
+      startTest("errors");
+    } else if (mode === "topicQuiz" && activeTopic) {
+      startTopicQuiz(activeTopic.key, activeTopic.title);
     } else {
-      setMode("idle");
-      setQuestions([]);
-      setCurrentIndex(0);
-      setAnswers({});
-      setIsFinished(false);
+      handleBackToMenu();
     }
   };
 
+  // ===== Обработка ответа с подсветкой и ошибками =====
+
+  const handleAnswer = (optionId: string) => {
+    if (!currentQuestion || isChecking) return;
+
+    const questionId = currentQuestion.id;
+    const isCorrectNow = isAnswerCorrect(currentQuestion, optionId);
+
+    setSelectedOptionId(optionId);
+    setIsChecking(true);
+    setAnswers((prev) => ({ ...prev, [questionId]: optionId }));
+
+    // Обновление списка ошибок
+    if (mode !== "errors" && mode !== "topicQuiz") {
+      // в обычных режимах: добавляем вопрос в ошибки, если ответ неверный
+      if (!isCorrectNow) {
+        setErrorQuestions((prev) => {
+          if (prev.some((q) => q.id === questionId)) return prev;
+          return [...prev, currentQuestion];
+        });
+      }
+    } else if (mode === "errors" || mode === "topicQuiz") {
+      // в режиме ошибок и тем: если ответ верный — удаляем из списка ошибок
+      if (isCorrectNow) {
+        setErrorQuestions((prev) => prev.filter((q) => q.id !== questionId));
+      } else {
+        // если снова неверный — убеждаемся, что вопрос есть в списке ошибок
+        setErrorQuestions((prev) => {
+          if (prev.some((q) => q.id === questionId)) return prev;
+          return [...prev, currentQuestion];
+        });
+      }
+    }
+
+    const isLast = currentIndex === questions.length - 1;
+    const delay = isCorrectNow ? 500 : 2000; // 0.5 c при верном, 2 c при неверном
+
+    setTimeout(() => {
+      setIsChecking(false);
+      setSelectedOptionId(null);
+
+      if (isLast) {
+        setIsFinished(true);
+      } else {
+        setCurrentIndex((prev) => prev + 1);
+      }
+    }, delay);
+  };
+
+  // ===== Рендер =====
+
+  // Режим "errors" без вопросов (нет сохранённых ошибок)
+  if (mode === "errors" && questions.length === 0 && !isFinished) {
+    return (
+      <div className="flex min-h-screen bg-slate-950 text-slate-50">
+        <div className="mx-auto flex w-full max-w-xl flex-col px-4 pb-6 pt-8">
+          <header className="mb-4 flex items-center justify-between">
+            <h1 className="text-lg font-semibold">Ошибки</h1>
+            <button
+              onClick={handleBackToMenu}
+              className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-200 shadow-sm hover:bg-slate-700"
+            >
+              В меню
+            </button>
+          </header>
+
+          <main className="flex flex-1 flex-col items-center justify-center text-center">
+            <p className="mb-4 text-sm text-slate-300">
+              У вас нет сохранённых ошибок.
+            </p>
+            <button
+              onClick={handleBackToMenu}
+              className="rounded-full bg-emerald-500 px-6 py-3 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-500/30 hover:bg-emerald-400"
+            >
+              В главное меню
+            </button>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  // Главное меню
   if (mode === "idle") {
     return (
       <div className="flex min-h-screen bg-slate-950 text-slate-50">
@@ -1025,7 +1147,7 @@ export function App() {
           <header className="mb-6 text-center">
             <h1 className="text-lg font-semibold">Тест для Telegram</h1>
             <p className="mt-1 text-xs text-slate-400">
-              Выберите режим прохождения: зачёт (20 случайных вопросов) или вся база вопросов.
+              Выберите режим: зачёт, вся база, ошибки или вопросы по темам.
             </p>
           </header>
 
@@ -1034,8 +1156,28 @@ export function App() {
               onClick={() => startTest("credit")}
               className="rounded-2xl bg-emerald-500 px-4 py-4 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-500/30 active:scale-[0.98] hover:bg-emerald-400"
             >
-              Зачет (20 случайных вопросов)
+              Зачёт (20 случайных вопросов)
             </button>
+
+            <button
+              onClick={startErrorsTest}
+              className="rounded-2xl bg-rose-500 px-4 py-4 text-sm font-semibold text-rose-50 shadow-lg shadow-rose-500/40 active:scale-[0.98] hover:bg-rose-400"
+            >
+              Ошибки
+              {errorQuestions.length > 0 && (
+                <span className="ml-1 text-xs opacity-80">
+                  ({errorQuestions.length})
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={startTopicsMenu}
+              className="rounded-2xl bg-indigo-500 px-4 py-4 text-sm font-semibold text-indigo-50 shadow-lg shadow-indigo-500/40 active:scale-[0.98] hover:bg-indigo-400"
+            >
+              Вопросы по темам
+            </button>
+
             <button
               onClick={() => startTest("all")}
               className="rounded-2xl bg-slate-800 px-4 py-4 text-sm font-semibold text-slate-50 shadow-lg shadow-slate-950/40 active:scale-[0.98] hover:bg-slate-700"
@@ -1052,111 +1194,223 @@ export function App() {
     );
   }
 
-  if (!currentQuestion && !isFinished) {
+  // Экран выбора темы
+  if (mode === "topics") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-50">
-        <div className="text-center text-sm text-slate-300">
-          Недостаточно вопросов в базе. Добавьте больше вопросов в ALL_QUESTIONS.
+      <div className="flex min-h-screen bg-slate-950 text-slate-50">
+        <div className="mx-auto flex w-full max-w-xl flex-col px-4 pb-6 pt-8">
+          <header className="mb-4 flex items-center justify-between">
+            <h1 className="text-lg font-semibold">Вопросы по темам</h1>
+            <button
+              onClick={handleBackToMenu}
+              className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-200 shadow-sm hover:bg-slate-700"
+            >
+              В меню
+            </button>
+          </header>
+
+          <main className="flex flex-1 flex-col gap-2">
+            <button
+              onClick={() => startTopicQuiz("firstAid", "Первая помощь")}
+              className="w-full rounded-2xl bg-slate-800 px-4 py-3 text-left text-sm font-medium hover:bg-slate-700"
+            >
+              Первая помощь
+            </button>
+            <button
+              onClick={() => startTopicQuiz("fireSafety", "Пожарная безопасность")}
+              className="w-full rounded-2xl bg-slate-800 px-4 py-3 text-left text-sm font-medium hover:bg-slate-700"
+            >
+              Пожарная безопасность
+            </button>
+            <button
+              onClick={() => startTopicQuiz("roadRescue", "ДТП, АСР")}
+              className="w-full rounded-2xl bg-slate-800 px-4 py-3 text-left text-sm font-medium hover:bg-slate-700"
+            >
+              ДТП, АСР
+            </button>
+            <button
+              onClick={() => startTopicQuiz("tools", "Работа с инструментом")}
+              className="w-full rounded-2xl bg-slate-800 px-4 py-3 text-left text-sm font-medium hover:bg-slate-700"
+            >
+              Работа с инструментом
+            </button>
+            <button
+              onClick={() => startTopicQuiz("psychology", "Психология")}
+              className="w-full rounded-2xl bg-slate-800 px-4 py-3 text-left text-sm font-medium hover:bg-slate-700"
+            >
+              Психология
+            </button>
+            <button
+              onClick={() => startTopicQuiz("ppeAndAhov", "СИЗ и АХОВ")}
+              className="w-full rounded-2xl bg-slate-800 px-4 py-3 text-left text-sm font-medium hover:bg-slate-700"
+            >
+              СИЗ и АХОВ
+            </button>
+          </main>
         </div>
       </div>
     );
   }
 
+  // Если нет текущего вопроса и тест не завершён (например, тема без вопросов)
+  if (!currentQuestion && !isFinished) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-50">
+        <div className="text-center text-sm text-slate-300">
+          Недостаточно вопросов в базе или для выбранной темы. Проверьте IDs.
+        </div>
+      </div>
+    );
+  }
+
+  // Экран прохождения теста
+  if (!isFinished && currentQuestion) {
+    return (
+      <div className="flex min-h-screen bg-slate-950 text-slate-50">
+        <div className="mx-auto flex w-full max-w-xl flex-col px-4 pb-6 pt-8">
+          <header className="mb-4 flex items-center justify-between">
+            <div>
+              <h1 className="text-lg font-semibold">
+                {mode === "credit" && "Зачёт"}
+                {mode === "all" && "Все вопросы"}
+                {mode === "errors" && "Ошибки"}
+                {mode === "topicQuiz" && (activeTopic?.title || "Тема")}
+              </h1>
+              <p className="text-xs text-slate-400">
+                Вопрос {currentIndex + 1} / {questions.length}
+              </p>
+            </div>
+            <button
+              onClick={handleBackToMenu}
+              className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-200 shadow-sm hover:bg-slate-700"
+            >
+              В меню
+            </button>
+          </header>
+
+          <main className="flex flex-1 flex-col">
+            <div className="mb-3 flex items-center justify-between text-xs text-slate-400">
+              <span>Правильных: {correctCount}</span>
+              <span>
+                Ошибок: {errorsCount} / допущено {maxErrorsAllowed}
+              </span>
+            </div>
+
+            <div className="mb-4 rounded-2xl bg-slate-900/60 p-4 shadow-lg shadow-slate-950/40">
+              <p className="whitespace-pre-line text-sm leading-relaxed">
+                {currentQuestion.text}
+              </p>
+            </div>
+
+            <div className="mt-auto flex flex-col gap-2">
+              {currentQuestion.options.map((option) => {
+                let bg = "bg-slate-800 hover:bg-slate-700";
+                let textColor = "text-slate-50";
+
+                if (isChecking) {
+                  const isCorrectOpt = option.isCorrect;
+                  const isSelected = option.id === selectedOptionId;
+
+                  if (isCorrectOpt) {
+                    bg = "bg-emerald-600";
+                    textColor = "text-emerald-50";
+                  } else if (isSelected && !isCorrectOpt) {
+                    bg = "bg-rose-600";
+                    textColor = "text-rose-50";
+                  } else {
+                    bg = "bg-slate-800/70";
+                    textColor = "text-slate-400";
+                  }
+                }
+
+                return (
+                  <button
+                    key={option.id}
+                    onClick={() => handleAnswer(option.id)}
+                    disabled={isChecking}
+                    className={`w-full rounded-2xl px-4 py-3 text-left text-sm font-medium transition active:scale-[0.98] ${bg} ${textColor}`}
+                  >
+                    {option.text}
+                  </button>
+                );
+              })}
+            </div>
+          </main>
+
+          <footer className="mt-4 text-center text-[10px] text-slate-500">
+            Интерфейс адаптирован под Telegram WebApp: вопрос сверху, варианты
+            ответов кнопками внизу.
+          </footer>
+        </div>
+      </div>
+    );
+  }
+
+  // Экран результатов
   return (
     <div className="flex min-h-screen bg-slate-950 text-slate-50">
       <div className="mx-auto flex w-full max-w-xl flex-col px-4 pb-6 pt-8">
         <header className="mb-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-semibold">Тест для Telegram</h1>
-            <p className="text-xs text-slate-400">
-              {mode === "credit" ? "20 случайных вопросов (зачет)" : "Все вопросы из базы"}
-            </p>
-          </div>
+          <h1 className="text-lg font-semibold">
+            {mode === "credit" && "Результат зачёта"}
+            {mode === "all" && "Результат теста"}
+            {mode === "errors" && "Повторение ошибок завершено"}
+            {mode === "topicQuiz" && (activeTopic?.title || "Результат по теме")}
+          </h1>
           <button
-            onClick={() => {
-              setMode("idle");
-              setQuestions([]);
-              setCurrentIndex(0);
-              setAnswers({});
-              setIsFinished(false);
-            }}
+            onClick={handleBackToMenu}
             className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-200 shadow-sm hover:bg-slate-700"
           >
             В меню
           </button>
         </header>
 
-        {!isFinished ? (
-          <main className="flex flex-1 flex-col">
-            <div className="mb-3 flex items-center justify-between text-xs text-slate-400">
-              <span>
-                Вопрос {currentIndex + 1} / {questions.length}
-              </span>
-              <span>Правильных: {correctCount}</span>
-            </div>
+        <main className="flex flex-1 flex-col items-center justify-center text-center">
+          <div className="mb-6 rounded-3xl bg-slate-900/70 px-6 py-8 shadow-lg shadow-slate-950/40">
+            <p className="mb-2 text-sm text-slate-300">
+              Правильных ответов: {correctCount} из {questions.length}
+            </p>
 
-            {currentQuestion && (
-              <>
-                <div className="mb-4 rounded-2xl bg-slate-900/60 p-4 shadow-lg shadow-slate-950/40">
-                  <p className="whitespace-pre-line text-sm leading-relaxed">{currentQuestion.text}</p>
-                </div>
-
-                <div className="mt-auto flex flex-col gap-2">
-                  {currentQuestion.options.map((option) => (
-                    <button
-                      key={option.id}
-                      onClick={() => handleAnswer(option.id)}
-                      className="w-full rounded-2xl bg-slate-800 px-4 py-3 text-left text-sm font-medium transition hover:bg-slate-700 active:scale-[0.98]"
-                    >
-                      {option.text}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </main>
-        ) : (
-          <main className="flex flex-1 flex-col items-center justify-center text-center">
-            <div className="mb-6 rounded-3xl bg-slate-900/70 px-6 py-8 shadow-lg shadow-slate-950/40">
-              <h2 className="mb-2 text-xl font-semibold">Тест завершён</h2>
-              <p className="mb-4 text-sm text-slate-300">
-                Правильных ответов: {correctCount} из {questions.length}
+            {mode === "errors" ? (
+              <p className="text-base font-semibold text-emerald-400">
+                У вас нет ошибок.
               </p>
+            ) : (
               <p
                 className={
-                  "text-lg font-bold " + (isPassed ? "text-emerald-400" : "text-rose-400")
+                  "text-lg font-bold " +
+                  (isPassed ? "text-emerald-400" : "text-rose-400")
                 }
               >
                 {isPassed ? "Зачёт" : "Незачёт"}
               </p>
-            </div>
+            )}
+          </div>
 
-            <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2">
+            {mode !== "errors" && (
               <button
                 onClick={handleRestartSameMode}
                 className="rounded-full bg-emerald-500 px-6 py-3 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-500/30 hover:bg-emerald-400"
               >
                 Пройти ещё раз в этом режиме
               </button>
-              <button
-                onClick={() => setMode("idle")}
-                className="rounded-full bg-slate-800 px-6 py-3 text-sm font-semibold text-slate-50 shadow-lg shadow-slate-950/40 hover:bg-slate-700"
-              >
-                В главное меню
-              </button>
-            </div>
-          </main>
-        )}
+            )}
+            <button
+              onClick={handleBackToMenu}
+              className="rounded-full bg-slate-800 px-6 py-3 text-sm font-semibold text-slate-50 shadow-lg shadow-slate-950/40 hover:bg-slate-700"
+            >
+              В главное меню
+            </button>
+          </div>
+        </main>
 
         <footer className="mt-4 text-center text-[10px] text-slate-500">
-          Интерфейс адаптирован под Telegram WebApp: вопрос сверху, варианты ответов кнопками внизу.
+          Интерфейс адаптирован под Telegram WebApp: вопрос сверху, варианты
+          ответов кнопками внизу.
         </footer>
       </div>
     </div>
   );
 }
 
-function isAnswerCorrect(question: Question, optionId: string): boolean {
-  const option = question.options.find((o) => o.id === optionId);
-  return Boolean(option && option.isCorrect);
-}
