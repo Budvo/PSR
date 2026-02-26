@@ -180,9 +180,9 @@ const ALL_QUESTIONS: Question[] = [
     id: 18,
     text: "Имеется необходимость удалении крыши. Вклеенное лобовое стекло препятствует этому. Что необходимо предпринять?",
     options: [
-      { id: "a", text: "Выдавить лобовое стекло изнутри", isCorrect: true },
+      { id: "a", text: "Выдавить лобовое стекло изнутри", isCorrect: false },
       { id: "b", text: "Оторвать вручную лобовое стекло от крыши или кузова", isCorrect: false },
-      { id: "c", text: "Разрезать лобовое стекло сабельной пилой или ручной пилой для стекла", isCorrect: false },
+      { id: "c", text: "Разрезать лобовое стекло сабельной пилой или ручной пилой для стекла", isCorrect: true },
     ],
   },
   {
@@ -1099,6 +1099,49 @@ type ActiveTopic =
       title: string;
     }
   | null;
+// ===== Статистика тестов (localStorage) =====
+
+type ModeForStats = "credit" | "all" | "errors" | "topic";
+
+type QuizStats = {
+  totalRuns: number;
+  passedCount: number;
+  failedCount: number;
+  perMode: Record<
+    ModeForStats,
+    {
+      runs: number;
+      passed: number;
+      failed: number;
+    }
+  >;
+};
+
+const STATS_KEY = "quizStats";
+
+function loadStats(): QuizStats {
+  try {
+    const raw = localStorage.getItem(STATS_KEY);
+    if (!raw) throw new Error("no stats");
+    return JSON.parse(raw) as QuizStats;
+  } catch {
+    return {
+      totalRuns: 0,
+      passedCount: 0,
+      failedCount: 0,
+      perMode: {
+        credit: { runs: 0, passed: 0, failed: 0 },
+        all: { runs: 0, passed: 0, failed: 0 },
+        errors: { runs: 0, passed: 0, failed: 0 },
+        topic: { runs: 0, passed: 0, failed: 0 },
+      },
+    };
+  }
+}
+
+function saveStats(stats: QuizStats) {
+  localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+}
 
 // ===== Основной компонент =====
 
@@ -1116,11 +1159,12 @@ export function App() {
 
   const [errorQuestions, setErrorQuestions] = useState<Question[]>([]);
   const [activeTopic, setActiveTopic] = useState<ActiveTopic>(null);
+  const [stats, setStats] = useState<QuizStats | null>(null);
 
   // Можно оставить пустым useEffect или удалить совсем.
   // Оставляю пустой, чтобы структура была как в исходной версии.
-  useEffect(() => {
-    // без Telegram WebApp, без бота
+    useEffect(() => {
+    setStats(loadStats());
   }, []);
 
   const currentQuestion = questions[currentIndex];
@@ -1142,6 +1186,35 @@ export function App() {
   );
   const errorsCount = Math.max(totalQuestions - correctCount, 0);
   const isPassed = errorsCount <= maxErrorsAllowed;
+  useEffect(() => {
+    if (!isFinished) return;
+
+    // загружаем текущую статистику
+    const current = loadStats();
+    const passed = isPassed;
+
+    current.totalRuns += 1;
+    if (passed) current.passedCount += 1;
+    else current.failedCount += 1;
+
+    // Определяем режим для статистики
+    const modeForStats: ModeForStats =
+      mode === "credit"
+        ? "credit"
+        : mode === "all"
+        ? "all"
+        : mode === "errors"
+        ? "errors"
+        : "topic"; // для topicQuiz и других тем
+
+    const m = current.perMode[modeForStats];
+    m.runs += 1;
+    if (passed) m.passed += 1;
+    else m.failed += 1;
+
+    saveStats(current);
+    setStats(current);
+  }, [isFinished, isPassed, mode]);
 
   // ===== Запуск режимов =====
 
@@ -1310,11 +1383,46 @@ export function App() {
       <div className="flex min-h-screen bg-slate-950 text-slate-50">
         <div className="mx-auto flex w-full max-w-xl flex-col px-4 pb-6 pt-8">
           <header className="mb-6 text-center">
-            <h1 className="text-lg font-semibold">Тест для Telegram</h1>
+            <h1 className="text-lg font-semibold">Тест для спасателей ПСР</h1>
             <p className="mt-1 text-xs text-slate-400">
               Выберите режим: зачёт, вся база, ошибки или вопросы по темам.
             </p>
           </header>
+          {stats && (
+            <div className="mb-4 rounded-2xl bg-slate-900/60 p-3 text-xs text-slate-300 text-left">
+              <div>Всего прохождений: {stats.totalRuns}</div>
+              {stats.totalRuns > 0 && (
+                <>
+                  <div>
+                    Зачёт:{" "}
+                    {Math.round((stats.passedCount / stats.totalRuns) * 100)}% (
+                    {stats.passedCount} / {stats.totalRuns})
+                  </div>
+                  <div className="mt-1 text-[10px] text-slate-400">
+                    По режимам: Зачёт / Всего
+                  </div>
+                  <div className="mt-1 grid grid-cols-2 gap-x-4 gap-y-1">
+                    <span>
+                      Зачёт: {stats.perMode.credit.passed} /{" "}
+                      {stats.perMode.credit.runs}
+                    </span>
+                    <span>
+                      Все вопросы: {stats.perMode.all.passed} /{" "}
+                      {stats.perMode.all.runs}
+                    </span>
+                    <span>
+                      Ошибки: {stats.perMode.errors.passed} /{" "}
+                      {stats.perMode.errors.runs}
+                    </span>
+                    <span>
+                      Темы: {stats.perMode.topic.passed} /{" "}
+                      {stats.perMode.topic.runs}
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
 
           <main className="flex flex-1 flex-col items-stretch justify-center gap-3">
             <button
@@ -1352,7 +1460,7 @@ export function App() {
           </main>
 
           <footer className="mt-4 text-center text-[10px] text-slate-500">
-            Интерфейс адаптирован под Telegram WebApp.
+            Создано для обучающихся по программе ПСР
           </footer>
         </div>
       </div>
@@ -1503,8 +1611,7 @@ export function App() {
           </main>
 
           <footer className="mt-4 text-center text-[10px] text-slate-500">
-            Интерфейс адаптирован под Telegram WebApp: вопрос сверху, варианты
-            ответов кнопками внизу.
+            Данное приложение создано в ознакомительных целях
           </footer>
         </div>
       </div>
@@ -1571,11 +1678,9 @@ export function App() {
         </main>
 
         <footer className="mt-4 text-center text-[10px] text-slate-500">
-          Интерфейс адаптирован под Telegram WebApp: вопрос сверху, варианты
-          ответов кнопками внизу.
+          Данное приложение создано в ознакомительных целях
         </footer>
       </div>
     </div>
   );
 }
-
