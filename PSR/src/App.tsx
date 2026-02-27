@@ -1046,12 +1046,40 @@ const ALL_QUESTIONS: Question[] = [
       { id: "110c", text: "Не менее 3 опор", isCorrect: true },
     ],
   },
+  {
+    id: 111,
+    text: "Признаки глубокого ожога",
+    options: [
+      { id: "111a", text: "Пузыри, заполненных кровянистым содержимым, которые могут быть частично разрушены, кожа может обугливаться", isCorrect: true },
+      { id: "111b", text: "Пузыри, заполненные прозрачной жидкостью, покраснение кожи", isCorrect: false },
+      { id: "111c", text: "Ярко красная кожа, наличие кожных язв", isCorrect: false },
+    ],
+  },
+  {
+    id: 112,
+    text: "При ДТП какого вида и характере повреждений наиболее вероятно зажатие педалями автомобиля ног водителя?",
+    options: [
+      { id: "112a", text: "Боковое столкновение", isCorrect: false },
+      { id: "112b", text: "Опрокидывание на крышу", isCorrect: false },
+      { id: "112c", text: "Тыльное столкновение", isCorrect: false },
+      { id: "112d", text: "Лобовое столкновение", isCorrect: true },
+    ],
+  },
+  {
+    id: 113,
+    text: "Для защиты от хлора используется",
+    options: [
+      { id: "113a", text: "Промышленный противогаз (коробка серого цвета)", isCorrect: false },
+      { id: "113b", text: "Промышленный противогаз (коробка желтого цвета)", isCorrect: true },
+      { id: "113c", text: "Общевойсковой фильтрующий противогаз", isCorrect: false },
+    ],
+  },
 ];
 
 const TOPIC_QUESTION_IDS = {
   // "Первая помощь"
   firstAid: [
-    11, 17, 24, 29, 33, 38, 40, 43, 47, 52, 56, 63, 70, 75, 77, 83, 91, 94, 97, 99, 102, 105, 106, 108, 109,
+    11, 17, 24, 29, 33, 38, 40, 43, 47, 52, 56, 63, 70, 75, 77, 83, 91, 94, 97, 99, 102, 105, 106, 108, 109, 111,
   ],
   // "Пожарная безопасность"
   fireSafety: [
@@ -1059,7 +1087,7 @@ const TOPIC_QUESTION_IDS = {
   ],
   // "ДТП, АСР"
   roadRescue: [
-    12, 18, 25, 30, 34, 39, 44, 53, 61, 67, 69, 71, 73, 76, 84, 88, 95, 98, 101, 103, 110
+    12, 18, 25, 30, 34, 39, 44, 53, 61, 67, 69, 71, 73, 76, 84, 88, 95, 98, 101, 103, 110, 112
   ],
   // "Работа с инструментом"
   tools: [
@@ -1071,7 +1099,7 @@ const TOPIC_QUESTION_IDS = {
   ],
   // "СИЗ и АХОВ"
   ppeAndAhov: [
-    2, 6, 8, 14, 20, 22, 26, 36, 49, 57, 65, 85, 100,
+    2, 6, 8, 14, 20, 22, 26, 36, 49, 57, 65, 85, 100, 113
   ],
 } as const;
 
@@ -1160,6 +1188,8 @@ export function App() {
   const [errorQuestions, setErrorQuestions] = useState<Question[]>([]);
   const [activeTopic, setActiveTopic] = useState<ActiveTopic>(null);
   const [stats, setStats] = useState<QuizStats | null>(null);
+  const [reviewMode, setReviewMode] = useState(false);
+  const [reviewQuestionIds, setReviewQuestionIds] = useState<number[]>([]);
 
   // Можно оставить пустым useEffect или удалить совсем.
   // Оставляю пустой, чтобы структура была как в исходной версии.
@@ -1186,10 +1216,23 @@ export function App() {
   );
   const errorsCount = Math.max(totalQuestions - correctCount, 0);
   const isPassed = errorsCount <= maxErrorsAllowed;
-  useEffect(() => {
+    useEffect(() => {
     if (!isFinished) return;
 
-    // загружаем текущую статистику
+    // === 1. Формируем список вопросов с ошибками для разбора ===
+    const wrongIds: number[] = [];
+    questions.forEach((q) => {
+      const chosen = answers[q.id];
+      const correctOption = q.options.find((o) => o.isCorrect);
+      if (!correctOption) return;
+      if (!chosen || chosen !== correctOption.id) {
+        wrongIds.push(q.id);
+      }
+    });
+    setReviewQuestionIds(wrongIds);
+    setReviewMode(false); // выходим из режима разбора при новом завершении теста
+
+    // === 2. Обновляем общую статистику ===
     const current = loadStats();
     const passed = isPassed;
 
@@ -1197,7 +1240,6 @@ export function App() {
     if (passed) current.passedCount += 1;
     else current.failedCount += 1;
 
-    // Определяем режим для статистики
     const modeForStats: ModeForStats =
       mode === "credit"
         ? "credit"
@@ -1214,7 +1256,7 @@ export function App() {
 
     saveStats(current);
     setStats(current);
-  }, [isFinished, isPassed, mode]);
+  }, [isFinished, isPassed, mode, questions, answers]);
 
   // ===== Запуск режимов =====
 
@@ -1553,12 +1595,26 @@ export function App() {
                 Вопрос {currentIndex + 1} / {questions.length}
               </p>
             </div>
-            <button
-              onClick={handleBackToMenu}
-              className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-200 shadow-sm hover:bg-slate-700"
-            >
-              В меню
-            </button>
+
+            {reviewMode ? (
+              <button
+                onClick={() => {
+                  // выходим из режима разбора и возвращаемся к экрану результатов
+                  setReviewMode(false);
+                  setIsFinished(true);
+                }}
+                className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-200 shadow-sm hover:bg-slate-700"
+              >
+                К результатам
+              </button>
+            ) : (
+              <button
+                onClick={handleBackToMenu}
+                className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-200 shadow-sm hover:bg-slate-700"
+              >
+                В меню
+              </button>
+            )}
           </header>
 
           <main className="flex flex-1 flex-col">
@@ -1579,8 +1635,31 @@ export function App() {
               {currentQuestion.options.map((option) => {
                 let bg = "bg-slate-800 hover:bg-slate-700";
                 let textColor = "text-slate-50";
+                let disabled = false;
 
-                if (isChecking) {
+                const chosenId = answers[currentQuestion.id] ?? null;
+
+                if (reviewMode) {
+                  // РЕЖИМ РАЗБОРА: показываем сохранённый ответ и правильный
+                  disabled = true;
+
+                  const isCorrectOpt = option.isCorrect;
+                  const isChosen = option.id === chosenId;
+
+                  if (isCorrectOpt) {
+                    bg = "bg-emerald-600";
+                    textColor = "text-emerald-50";
+                  } else if (isChosen && !isCorrectOpt) {
+                    bg = "bg-rose-600";
+                    textColor = "text-rose-50";
+                  } else {
+                    bg = "bg-slate-800/70";
+                    textColor = "text-slate-400";
+                  }
+                } else if (isChecking) {
+                  // ФАЗА ПРОВЕРКИ сразу после нажатия
+                  disabled = true;
+
                   const isCorrectOpt = option.isCorrect;
                   const isSelected = option.id === selectedOptionId;
 
@@ -1594,13 +1673,16 @@ export function App() {
                     bg = "bg-slate-800/70";
                     textColor = "text-slate-400";
                   }
+                } else {
+                  // Обычное состояние до ответа — НИКАКОЙ подсветки
+                  disabled = false;
                 }
 
                 return (
                   <button
                     key={option.id}
                     onClick={() => handleAnswer(option.id)}
-                    disabled={isChecking}
+                    disabled={disabled}
                     className={`w-full rounded-2xl px-4 py-3 text-left text-sm font-medium transition active:scale-[0.98] ${bg} ${textColor}`}
                   >
                     {option.text}
@@ -1658,6 +1740,32 @@ export function App() {
               </p>
             )}
           </div>
+          {reviewQuestionIds.length > 0 && mode !== "errors" && (
+            <div className="mb-4 w-full max-w-md">
+              <p className="mb-2 text-xs text-slate-400">
+                Вопросы с ошибками (нажмите, чтобы разобрать):
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {reviewQuestionIds.map((id) => (
+                  <button
+                    key={id}
+                    onClick={() => {
+                      // включаем режим разбора и переходим к выбранному вопросу
+                      setReviewMode(true);
+                      const index = questions.findIndex((q) => q.id === id);
+                      if (index >= 0) {
+                        setIsFinished(false);
+                        setCurrentIndex(index);
+                      }
+                    }}
+                    className="rounded-full bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-100 shadow-sm hover:bg-slate-700"
+                  >
+                    Вопрос {questions.findIndex((q) => q.id === id) + 1}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="flex flex-col gap-2">
             {mode !== "errors" && (
